@@ -1,34 +1,69 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowUpRight, Award, BadgeCheck, Calendar } from 'lucide-react';
 import { certificatesData } from '../data/certificates';
-import { Award, ExternalLink } from 'lucide-react';
+import { SectionHeading } from './ui/SectionHeading';
+import { SpotlightCard } from './ui/SpotlightCard';
+import { Reveal } from './ui/Reveal';
 
 export const Certificates: React.FC = () => {
   return (
-    <section id="certificates" className="py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-slate-100 mb-12 border-l-4 border-cyan-500 pl-4">
-          Certificates & Credentials
-        </h2>
+    <section id="certificates" className="relative py-28">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <SectionHeading
+          index="04"
+          eyebrow="Certificates"
+          title="Always"
+          highlight="learning"
+          subtitle="Courses and credentials that sharpened my skills along the way."
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {certificatesData.map((cert) => (
-            <div key={cert.id} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-4 hover:border-slate-700 transition-all">
-              <div className="p-4 bg-cyan-950/50 text-cyan-400 rounded-xl border border-cyan-800/40">
-                <Award size={32} />
-              </div>
-              <div className="flex-1 space-y-1">
-                <h3 className="font-semibold text-slate-200">{cert.title}</h3>
-                <p className="text-xs text-slate-400">{cert.platform} • {cert.issueDate}</p>
-                <a
-                  href={cert.credentialUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:underline pt-1"
-                >
-                  View Credential <ExternalLink size={12} />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {certificatesData.map((cert, i) => (
+            <Reveal key={cert.id} delay={(i % 3) * 0.12} from={i % 2 === 0 ? 'left' : 'right'} className="h-full">
+              <SpotlightCard
+                tilt={8}
+                className="group h-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/70 backdrop-blur transition-shadow duration-500 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)]"
+              >
+                <a href={cert.credentialUrl} target="_blank" rel="noreferrer" className="relative flex h-full flex-col p-6">
+                  {/* animated top accent line */}
+                  <span className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 transition-transform duration-500 group-hover:scale-x-100" />
+                  {/* shine sweep */}
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/5 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+
+                  <div className="mb-5 flex items-start justify-between">
+                    <motion.div
+                      className="rounded-2xl border border-cyan-500/30 bg-linear-to-br from-cyan-500/20 to-purple-500/20 p-3.5 text-cyan-300"
+                      whileHover={{ rotate: [0, -12, 12, -6, 0], scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <Award size={28} />
+                    </motion.div>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                      <BadgeCheck size={12} /> Verified
+                    </span>
+                  </div>
+
+                  <h3 className="mb-2 text-lg leading-snug font-semibold text-slate-100 transition-colors group-hover:text-cyan-300">
+                    {cert.title}
+                  </h3>
+                  <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-400">
+                    <span className="font-medium text-slate-300">{cert.platform}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar size={13} /> {cert.issueDate}
+                    </span>
+                  </div>
+
+                  <span className="mt-auto inline-flex items-center gap-1 text-sm font-semibold text-cyan-300">
+                    View Credential
+                    <ArrowUpRight
+                      size={16}
+                      className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+                    />
+                  </span>
                 </a>
-              </div>
-            </div>
+              </SpotlightCard>
+            </Reveal>
           ))}
         </div>
       </div>

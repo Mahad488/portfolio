@@ -1,110 +1,303 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
+import { ArrowRight, Atom, Database, MapPinned, Server, Sparkles } from 'lucide-react';
 import profileImage from '../../photo/Image 2.jpeg';
+import { socialsData } from '../data/socials';
+import { projectsData } from '../data/projects';
+import { certificatesData } from '../data/certificates';
+import { skillsData } from '../data/skills';
+import { SocialIcon } from './icons';
+import { Magnetic } from './ui/Magnetic';
+import { CountUp } from './ui/CountUp';
 
-const GitHubLogo = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
-    <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.1c-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.33.95.1-.74.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.73.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.41.35.78 1.04.78 2.1v3.12c0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-  </svg>
+const ease = [0.22, 1, 0.36, 1] as const;
+const roles = ['Full Stack Developer', 'GIS Enthusiast', 'React & TypeScript Engineer', 'Problem Solver'];
+
+const Typewriter: React.FC<{ words: string[] }> = ({ words }) => {
+  const [index, setIndex] = useState(0);
+  const [text, setText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const word = words[index];
+    let delay = deleting ? 40 : 85;
+    let next: () => void = () =>
+      setText(deleting ? word.slice(0, text.length - 1) : word.slice(0, text.length + 1));
+
+    if (!deleting && text === word) {
+      delay = 1700;
+      next = () => setDeleting(true);
+    } else if (deleting && text === '') {
+      delay = 300;
+      next = () => {
+        setDeleting(false);
+        setIndex((i) => (i + 1) % words.length);
+      };
+    }
+
+    const id = window.setTimeout(next, delay);
+    return () => window.clearTimeout(id);
+  }, [text, deleting, index, words]);
+
+  return (
+    <span aria-hidden="true">
+      <span className="text-gradient">{text}</span>
+      <span className="ml-0.5 inline-block w-[3px] animate-blink bg-cyan-400 align-middle text-transparent">|</span>
+    </span>
+  );
+};
+
+const AnimatedName: React.FC<{ text: string; gradient?: boolean; startDelay: number }> = ({
+  text,
+  gradient,
+  startDelay,
+}) => (
+  <span className="inline-block whitespace-nowrap">
+    {text.split('').map((char, i) => (
+      <span key={i} className="inline-block overflow-hidden pb-2 align-bottom">
+        <motion.span
+          className={`inline-block ${gradient ? 'text-gradient' : ''}`}
+          initial={{ y: '110%', rotate: 12, opacity: 0 }}
+          animate={{ y: '0%', rotate: 0, opacity: 1 }}
+          transition={{ duration: 0.7, delay: startDelay + i * 0.035, ease }}
+        >
+          {char === ' ' ? ' ' : char}
+        </motion.span>
+      </span>
+    ))}
+  </span>
 );
 
-const LinkedInLogo = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
-    <path d="M6.94 8.5A1.5 1.5 0 1 1 6.94 5.5a1.5 1.5 0 0 1 0 3ZM5.5 9.75h2.88v8.75H5.5V9.75Zm4.75 0h2.76v1.2h.04c.38-.72 1.32-1.48 2.72-1.48 2.9 0 3.43 1.9 3.43 4.38v4.65h-2.88v-4.36c0-1.04-.02-2.38-1.45-2.38-1.45 0-1.67 1.13-1.67 2.3v4.44H10.25V9.75Z" />
-  </svg>
-);
-
-const XLogo = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
-    <path d="M18.9 2h3.6l-7.86 8.98L22.8 22h-7.11l-5.56-8.16L3.42 22H-.18l8.42-9.62L.8 2h7.27l5.03 7.45L18.9 2Zm-1.26 18h1.97L7.1 3.9H5.05L17.64 20Z" />
-  </svg>
-);
+const floatingBadges = [
+  { icon: Atom, label: 'React', className: '-top-4 -left-6 sm:-left-12', delay: '0s', color: 'text-cyan-300' },
+  { icon: Server, label: 'Node.js', className: 'top-1/3 -right-6 sm:-right-14', delay: '-1.5s', color: 'text-emerald-300' },
+  { icon: MapPinned, label: 'GIS', className: '-bottom-5 left-4 sm:-left-8', delay: '-3s', color: 'text-pink-300' },
+  { icon: Database, label: 'MySQL', className: '-bottom-3 -right-2 sm:right-6', delay: '-4.5s', color: 'text-amber-300' },
+];
 
 export const Hero: React.FC = () => {
-  return (
-    <section id="home" className="min-h-screen flex items-center pt-24 pb-12 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        
-        {/* Left Column Text */}
-        <motion.div 
-          className="lg:col-span-7 space-y-6"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="text-cyan-400 text-sm font-semibold tracking-wider uppercase bg-cyan-950/50 px-3 py-1 rounded-full border border-cyan-800/40">
-            Hi, I'm
-          </span>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">
-            Muhammad Mahad Rafiq
-          </h1>
-          <h2 className="text-xl sm:text-2xl font-semibold text-slate-400">
-            Full Stack Developer <span className="text-cyan-400">|</span> GIS Enthusiast
-          </h2>
-          <p className="text-slate-400 leading-relaxed max-w-2xl">
-            I craft full-stack web applications, spatial GIS dashboards, and scalable databases. Focused on clean architecture, modern UX, and spatial data integration.
-          </p>
+  const sectionRef = useRef<HTMLElement>(null);
+  const photoRef = useRef<HTMLDivElement>(null);
 
-          {/* Social Links */}
-          <div className="flex items-center space-x-4 pt-2">
-            {[
-              { icon: GitHubLogo, href: 'https://github.com/Mahad488' },
-              { icon: LinkedInLogo, href: 'https://www.linkedin.com/in/muhammad-mahad-rafiq-942295389/' },
-              { icon: XLogo, href: 'https://x.com/MuhammadMahadR2' },
-            ].map((social, i) => (
-              <a
-                key={i}
-                href={social.href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-12 w-12 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition-all hover:border-cyan-500/50 hover:text-cyan-400"
-              >
-                <social.icon />
-              </a>
-            ))}
+  // Parallax: content drifts and fades as the hero scrolls away.
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
+  const textY = useTransform(scrollYProgress, [0, 1], [0, 160]);
+  const photoY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const fade = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
+
+  // 3D tilt on the photo.
+  const rotateX = useSpring(0, { stiffness: 150, damping: 15 });
+  const rotateY = useSpring(0, { stiffness: 150, damping: 15 });
+  const handlePhotoMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse' || !photoRef.current) return;
+    const rect = photoRef.current.getBoundingClientRect();
+    rotateX.set(((e.clientY - rect.top) / rect.height - 0.5) * -18);
+    rotateY.set(((e.clientX - rect.left) / rect.width - 0.5) * 18);
+  };
+  const resetPhoto = () => {
+    rotateX.set(0);
+    rotateY.set(0);
+  };
+
+  const stats = [
+    { value: skillsData.length, suffix: '+', label: 'Technologies' },
+    { value: certificatesData.length, suffix: '', label: 'Certificates' },
+    { value: projectsData.length, suffix: '', label: 'Featured Projects' },
+  ];
+
+  return (
+    <section ref={sectionRef} id="home" className="relative flex min-h-screen items-center overflow-hidden pt-28 pb-20">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-16 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+        {/* Left column */}
+        <motion.div className="space-y-7 lg:col-span-7" style={{ y: textY, opacity: fade }}>
+          <motion.div
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-sm font-medium text-emerald-300"
+            initial={{ opacity: 0, y: -16, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease }}
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+            </span>
+            Open to opportunities
+          </motion.div>
+
+          <div>
+            <motion.p
+              className="mb-2 font-mono text-cyan-400"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease }}
+            >
+              Hi there, I'm 👋
+            </motion.p>
+            <h1
+              className="text-5xl leading-[1.05] font-bold tracking-tight text-white sm:text-7xl"
+              aria-label="Muhammad Mahad Rafiq"
+            >
+              <span aria-hidden="true">
+                <AnimatedName text="Muhammad Mahad" startDelay={0.25} />{' '}
+                <AnimatedName text="Rafiq" gradient startDelay={0.25 + 14 * 0.035} />
+              </span>
+            </h1>
           </div>
+
+          <motion.h2
+            className="min-h-[2.5rem] text-2xl font-semibold text-slate-300 sm:text-3xl"
+            aria-label={roles.join(', ')}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <Typewriter words={roles} />
+          </motion.h2>
+
+          <motion.p
+            className="max-w-2xl text-lg leading-relaxed text-slate-400"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.05, ease }}
+          >
+            I craft full-stack web applications, spatial <span className="text-slate-200">GIS dashboards</span>, and
+            scalable databases — focused on clean architecture, modern UX, and turning spatial data into products people
+            love to use.
+          </motion.p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4 pt-4">
-            <a
-              href="#projects"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20"
-            >
-              View Projects <ArrowRight size={18} />
-            </a>
-            <a
-              href="#contact"
-              className="px-6 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-semibold hover:border-slate-700 hover:text-white transition-all"
-            >
-              Contact Me
-            </a>
-          </div>
-        </motion.div>
+          <motion.div
+            className="flex flex-wrap items-center gap-4 pt-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.2, ease }}
+          >
+            <Magnetic>
+              <a
+                href="#projects"
+                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-cyan-400 via-blue-500 to-purple-500 bg-[length:200%_100%] px-7 py-3.5 font-semibold text-white shadow-lg shadow-cyan-500/30 transition-[background-position,box-shadow] duration-500 hover:bg-right hover:shadow-cyan-400/50"
+              >
+                <span className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <Sparkles size={18} className="relative" />
+                <span className="relative">View Projects</span>
+                <ArrowRight size={18} className="relative transition-transform group-hover:translate-x-1" />
+              </a>
+            </Magnetic>
+            <Magnetic>
+              <a
+                href="#contact"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/70 px-7 py-3.5 font-semibold text-slate-200 backdrop-blur transition-colors hover:border-cyan-400/60 hover:text-cyan-300"
+              >
+                Contact Me
+              </a>
+            </Magnetic>
 
-        {/* Right Column Profile Image */}
-        <motion.div 
-          className="lg:col-span-5 flex justify-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="relative w-64 h-64 sm:w-80 sm:h-80">
-            <div className="absolute inset-0 rounded-3xl bg-linear-to-tr from-cyan-500 to-blue-600 blur-2xl opacity-20 animate-pulse" />
-            <div className="relative w-full h-full rounded-3xl border-2 border-slate-800 bg-slate-900 overflow-hidden p-2">
-              <img
-                src={profileImage}
-                alt="Muhammad Mahad Rafiq"
-                className="w-full h-full object-cover rounded-2xl"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600';
-                }}
-              />
+            <div className="flex items-center gap-3 sm:ml-2">
+              {socialsData.map((social, i) => (
+                <motion.a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={social.name}
+                  className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/70 text-slate-400 backdrop-blur transition-colors hover:border-cyan-400/60 hover:text-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 1.35 + i * 0.1 }}
+                  whileHover={{ y: -4, rotate: -6 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <SocialIcon kind={social.kind} />
+                </motion.a>
+              ))}
             </div>
-          </div>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            className="grid max-w-lg grid-cols-3 gap-4 pt-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 1.5, ease }}
+          >
+            {stats.map((s) => (
+              <div key={s.label} className="border-l-2 border-cyan-400/40 pl-4">
+                <CountUp to={s.value} suffix={s.suffix} className="font-display text-3xl font-bold text-white sm:text-4xl" />
+                <p className="mt-1 text-xs tracking-wide text-slate-500 uppercase">{s.label}</p>
+              </div>
+            ))}
+          </motion.div>
         </motion.div>
 
+        {/* Right column: photo */}
+        <motion.div
+          className="flex justify-center lg:col-span-5"
+          style={{ y: photoY }}
+          initial={{ opacity: 0, scale: 0.8, rotate: -6 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 1, delay: 0.4, ease }}
+        >
+          <motion.div
+            ref={photoRef}
+            onPointerMove={handlePhotoMove}
+            onPointerLeave={resetPhoto}
+            style={{ rotateX, rotateY, transformPerspective: 900 }}
+            className="relative h-72 w-72 sm:h-96 sm:w-96"
+          >
+            {/* glow */}
+            <div className="absolute -inset-8 animate-pulse rounded-[3rem] bg-linear-to-tr from-cyan-500/40 via-blue-600/30 to-purple-600/40 blur-3xl" />
+
+            {/* spinning gradient border */}
+            <div className="relative h-full w-full overflow-hidden rounded-[2rem] p-[3px] shadow-2xl shadow-cyan-500/20">
+              <div className="conic-ring absolute top-1/2 left-1/2 h-[160%] w-[160%] -translate-x-1/2 -translate-y-1/2 animate-spin-slow" />
+              <div className="relative h-full w-full overflow-hidden rounded-[calc(2rem-3px)] bg-slate-900">
+                <img
+                  src={profileImage}
+                  alt="Muhammad Mahad Rafiq"
+                  className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/60 via-transparent to-transparent" />
+              </div>
+            </div>
+
+            {/* floating tech badges */}
+            {floatingBadges.map(({ icon: Icon, label, className, delay, color }, i) => (
+              <motion.div
+                key={label}
+                className={`absolute ${className}`}
+                style={{ translateZ: 60 }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 1.1 + i * 0.15 }}
+              >
+                <div
+                  className="flex animate-float items-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-900/85 px-3 py-2 text-sm font-semibold text-slate-200 shadow-xl backdrop-blur-md"
+                  style={{ animationDelay: delay }}
+                >
+                  <Icon size={18} className={color} />
+                  {label}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
       </div>
+
+      {/* scroll indicator */}
+      <motion.div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 md:block" style={{ opacity: fade }}>
+        <motion.a
+          href="#about"
+          aria-label="Scroll to About section"
+          className="flex flex-col items-center gap-2 text-xs tracking-widest text-slate-500 uppercase transition-colors hover:text-cyan-300"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2 }}
+        >
+          <span className="flex h-10 w-6 justify-center rounded-full border-2 border-slate-600 pt-2">
+            <span className="h-2 w-1 animate-scroll-wheel rounded-full bg-cyan-400" />
+          </span>
+          Scroll
+        </motion.a>
+      </motion.div>
     </section>
   );
 };
